@@ -1,7 +1,7 @@
 {
     "name": "spreadsheeteditor",
     "version": "4.3.0",
-    "build": 903,
+    "build": 905,
     "homepage": "http://www.onlyoffice.com",
     "private": true,
     "main": {
@@ -94,7 +94,7 @@
                 }
             },
             "postload": {
-                "options":{
+                "options": {
                     "baseUrl": "../apps/",
                     "optimize": "none",
                     "name": "../apps/spreadsheeteditor/main/app_pack.js",
@@ -404,7 +404,6 @@
         "deploy": [
             "increment-build",
             "deploy-app-main",
-            "deploy-app-mobile",
             "deploy-app-embed"
         ]
     }
