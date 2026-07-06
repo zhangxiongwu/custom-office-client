@@ -8,6 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DESKTOP_EDITORS_DIR="$SCRIPT_DIR/DesktopEditors"
 DMG_FILE="$SCRIPT_DIR/ONLYOFFICE-arm.dmg"
 DMG_URL="https://github.com/ONLYOFFICE/DesktopEditors/releases/download/v8.2.1/ONLYOFFICE-arm.dmg"
+DMG_X86_FILE="$SCRIPT_DIR/ONLYOFFICE-x86_64.dmg"
+DMG_X86_URL="https://github.com/ONLYOFFICE/DesktopEditors/releases/download/v8.2.1/ONLYOFFICE-x86_64.dmg"
 APP_DEST="$HOME/Applications/ONLYOFFICE.app"
 
 echo "============================================"
@@ -18,7 +20,7 @@ echo ""
 # ============================================
 # 1. 环境检查
 # ============================================
-echo ">>> [1/9] 检查环境依赖..."
+echo ">>> [1/10] 检查环境依赖..."
 
 # Node.js v22 - 必须用 v22，v24 与旧版 Grunt 不兼容（util.isError 已移除）
 export NVM_DIR="$HOME/.nvm"
@@ -66,13 +68,23 @@ echo ""
 # ============================================
 # 2. 下载官方 DMG（如果不存在）
 # ============================================
-echo ">>> [2/9] 下载官方 DMG (提取 CEF 内核 + 二进制组件)..."
+echo ">>> [2/10] 下载官方 DMG (提取 CEF 内核 + 二进制组件)..."
 
+# ARM DMG
 if [ -f "$DMG_FILE" ]; then
-    echo "  ✅ DMG 已存在 ($(du -sh "$DMG_FILE" | cut -f1))"
+    echo "  ✅ ARM DMG 已存在 ($(du -sh "$DMG_FILE" | cut -f1))"
 else
-    echo "  ⏳ 下载中 (约 322MB)..."
+    echo "  ⏳ 下载 ARM DMG (约 322MB)..."
     curl -L -o "$DMG_FILE" "$DMG_URL"
+    echo "  ✅ 下载完成"
+fi
+
+# x86_64 DMG (用于 build.command 双架构打包)
+if [ -f "$DMG_X86_FILE" ]; then
+    echo "  ✅ x86_64 DMG 已存在 ($(du -sh "$DMG_X86_FILE" | cut -f1))"
+else
+    echo "  ⏳ 下载 x86_64 DMG (约 332MB)..."
+    curl -L -o "$DMG_X86_FILE" "$DMG_X86_URL"
     echo "  ✅ 下载完成"
 fi
 echo ""
@@ -80,7 +92,7 @@ echo ""
 # ============================================
 # 3. 构建 web-apps（前端界面）
 # ============================================
-echo ">>> [3/9] 构建 web-apps (源码编译前端界面)..."
+echo ">>> [3/10] 构建 web-apps (源码编译前端界面)..."
 echo "  ⚠️  使用 Node.js v22（v24 的 util.isError 已被移除，不兼容旧版 Grunt）"
 
 WEBAPPS_BUILD_DIR="$DESKTOP_EDITORS_DIR/web-apps/build"
@@ -125,7 +137,7 @@ echo ""
 # ============================================
 # 4. 构建 loginpage（启动页）
 # ============================================
-echo ">>> [4/9] 构建 loginpage (启动页)..."
+echo ">>> [4/10] 构建 loginpage (启动页)..."
 
 LOGINPAGE_BUILD_DIR="$DESKTOP_EDITORS_DIR/desktop-apps/common/loginpage/build"
 
@@ -150,7 +162,7 @@ echo ""
 # ============================================
 # 5. 从 DMG 提取二进制并组装输出目录
 # ============================================
-echo ">>> [5/9] 从 DMG 提取二进制并组装输出目录..."
+echo ">>> [5/10] 从 DMG 提取二进制并组装输出目录..."
 
 # 挂载 DMG
 echo "  [5a] 挂载 DMG..."
@@ -210,12 +222,39 @@ cp "$OUT/login/index.html" "$OUT/index.html"
 # 卸载 DMG
 hdiutil detach /Volumes/ONLYOFFICE 2>/dev/null || true
 echo "  ✅ 输出目录组装完成"
+
+# 同时提取 x86_64 DMG 到 mac_64/（用于 build.command 双架构打包）
+if [ -f "$DMG_X86_FILE" ]; then
+    echo "  [5i] 提取 x86_64 DMG 到 build_tools/out/mac_64/..."
+    hdiutil attach "$DMG_X86_FILE" -nobrowse 2>&1 | tail -1
+    X86_DMG_APP="/Volumes/ONLYOFFICE/ONLYOFFICE.app"
+    X86_OUT="$DESKTOP_EDITORS_DIR/build_tools/out/mac_64/onlyoffice/desktopeditors"
+    mkdir -p "$X86_OUT"
+    cp -R "$X86_DMG_APP/Contents/Resources/converter" "$X86_OUT/" 2>/dev/null || true
+    cp -R "$X86_DMG_APP/Contents/Frameworks/"* "$X86_OUT/" 2>/dev/null || true
+    cp -R "$X86_DMG_APP/Contents/Resources/editors" "$X86_OUT/" 2>/dev/null || true
+    # 用源码编译的 web-apps 替换
+    rm -rf "$X86_OUT/editors/web-apps"
+    cp -R "$DESKTOP_EDITORS_DIR/web-apps/deploy/web-apps" "$X86_OUT/editors/web-apps"
+    # 修复 api/documents/index.html
+    mkdir -p "$X86_OUT/editors/web-apps/apps/api/documents"
+    cp "$X86_DMG_APP/Contents/Resources/editors/web-apps/apps/api/documents/index.html" \
+       "$X86_OUT/editors/web-apps/apps/api/documents/index.html" 2>/dev/null || true
+    # 部署 loginpage
+    mkdir -p "$X86_OUT/login"
+    cp "$DESKTOP_EDITORS_DIR/desktop-apps/common/loginpage/deploy/index.html" "$X86_OUT/login/"
+    cp "$DESKTOP_EDITORS_DIR/desktop-apps/common/loginpage/deploy/noconnect.html" "$X86_OUT/login/"
+    cp "$X86_OUT/login/index.html" "$X86_OUT/index.html" 2>/dev/null || true
+    hdiutil detach /Volumes/ONLYOFFICE 2>/dev/null || true
+    echo "     ✅ x86_64 输出目录组装完成"
+fi
+
 echo ""
 
 # ============================================
 # 6. 编译 Xcode 项目（macOS 原生外壳）
 # ============================================
-echo ">>> [6/9] 编译 Xcode 项目 (macOS 原生外壳)..."
+echo ">>> [6/10] 编译 Xcode 项目 (macOS 原生外壳)..."
 echo "  ⚠️  keychain 签名警告可忽略（本地开发无需证书）"
 
 XCODE_PROJ_DIR="$DESKTOP_EDITORS_DIR/desktop-apps/macos"
@@ -246,7 +285,7 @@ echo ""
 # ============================================
 # 7. 复制到 Applications
 # ============================================
-echo ">>> [7/9] 安装到 ~/Applications..."
+echo ">>> [7/10] 安装到 ~/Applications..."
 
 if [ -d "$APP_DEST" ]; then
     rm -rf "$APP_DEST"
@@ -258,7 +297,7 @@ echo ""
 # ============================================
 # 8. Ad-hoc 签名
 # ============================================
-echo ">>> [8/9] Ad-hoc 签名..."
+echo ">>> [8/10] Ad-hoc 签名..."
 
 codesign --force --deep --sign - \
     "$APP_DEST/Contents/Frameworks/Chromium Embedded Framework.framework" 2>/dev/null || true
@@ -274,7 +313,7 @@ echo ""
 # ============================================
 # 9. 验证安装
 # ============================================
-echo ">>> [9/9] 验证安装..."
+echo ">>> [9/10] 验证安装..."
 
 ERRORS=0
 

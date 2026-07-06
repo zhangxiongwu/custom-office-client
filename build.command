@@ -3,13 +3,15 @@
 # ONLYOFFICE Desktop Editors v8.2.1 构建 DMG
 # 输出兼容 Intel (x86_64) 和 Apple Silicon (arm64) 的通用 DMG
 # ============================================
-set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DESKTOP_EDITORS_DIR="$SCRIPT_DIR/DesktopEditors"
 DIST_DIR="$SCRIPT_DIR/dist"
 XCODE_PROJ_DIR="$DESKTOP_EDITORS_DIR/desktop-apps/macos"
-DMG_SOURCE="$DESKTOP_EDITORS_DIR/build_tools/out/mac_arm64/onlyoffice/desktopeditors"
+DMG_ARM_SOURCE="$DESKTOP_EDITORS_DIR/build_tools/out/mac_arm64/onlyoffice/desktopeditors"
+DMG_X86_SOURCE="$DESKTOP_EDITORS_DIR/build_tools/out/mac_64/onlyoffice/desktopeditors"
+DMG_X86_FILE="$SCRIPT_DIR/ONLYOFFICE-x86_64.dmg"
+DMG_X86_URL="https://github.com/ONLYOFFICE/DesktopEditors/releases/download/v8.2.1/ONLYOFFICE-x86_64.dmg"
 APP_NAME="ONLYOFFICE.app"
 DMG_NAME="ONLYOFFICE-DesktopEditors-8.2.1"
 
@@ -30,26 +32,57 @@ fi
 # ============================================
 # 1. 检查构建输出目录
 # ============================================
-echo ">>> [1/5] 检查构建输出..."
+echo ">>> [1/6] 检查构建输出..."
 
-if [ ! -d "$DMG_SOURCE" ]; then
-    echo "  ❌ 未找到 build_tools/out/，请先运行 install.command"
+if [ ! -d "$DMG_ARM_SOURCE" ]; then
+    echo "  ❌ 未找到 build_tools/out/mac_arm64/，请先运行 install.command"
     read -p "按回车键退出..."
     exit 1
 fi
 
-echo "  ✅ build_tools/out/ 存在"
+echo "  ✅ mac_arm64/ 存在"
+
+# 确保 x86_64 目录存在（可能需要手动提取 DMG）
+if [ ! -d "$DMG_X86_SOURCE" ]; then
+    echo "  ⚠️  mac_64/ 不存在，尝试从 x86_64 DMG 提取..."
+    if [ -f "$DMG_X86_FILE" ]; then
+        hdiutil attach "$DMG_X86_FILE" -nobrowse 2>&1 | tail -1
+        X86_DMG_APP="/Volumes/ONLYOFFICE/ONLYOFFICE.app"
+        mkdir -p "$DMG_X86_SOURCE"
+        cp -R "$X86_DMG_APP/Contents/Resources/converter" "$DMG_X86_SOURCE/" 2>/dev/null || true
+        cp -R "$X86_DMG_APP/Contents/Frameworks/"* "$DMG_X86_SOURCE/" 2>/dev/null || true
+        cp -R "$X86_DMG_APP/Contents/Resources/editors" "$DMG_X86_SOURCE/" 2>/dev/null || true
+        rm -rf "$DMG_X86_SOURCE/editors/web-apps"
+        cp -R "$DESKTOP_EDITORS_DIR/web-apps/deploy/web-apps" "$DMG_X86_SOURCE/editors/web-apps" 2>/dev/null || true
+        mkdir -p "$DMG_X86_SOURCE/editors/web-apps/apps/api/documents"
+        cp "$X86_DMG_APP/Contents/Resources/editors/web-apps/apps/api/documents/index.html" \
+           "$DMG_X86_SOURCE/editors/web-apps/apps/api/documents/index.html" 2>/dev/null || true
+        mkdir -p "$DMG_X86_SOURCE/login"
+        cp "$DMG_ARM_SOURCE/login/index.html" "$DMG_X86_SOURCE/login/" 2>/dev/null || true
+        cp "$DMG_ARM_SOURCE/login/noconnect.html" "$DMG_X86_SOURCE/login/" 2>/dev/null || true
+        cp "$DMG_X86_SOURCE/login/index.html" "$DMG_X86_SOURCE/index.html" 2>/dev/null || true
+        hdiutil detach /Volumes/ONLYOFFICE 2>/dev/null || true
+        echo "     ✅ x86_64 已提取完成"
+    else
+        echo "  ⚠️  未找到 ONLYOFFICE-x86_64.dmg，无法编译 Intel 版本"
+        echo "     可从以下地址下载: $DMG_X86_URL"
+        echo "     将仅构建 arm64 DMG"
+    fi
+fi
 echo ""
 
 # ============================================
 # 2. 分别编译 arm64 和 x86_64
 # ============================================
-echo ">>> [2/5] 编译 Release 版本..."
+echo ">>> [2/6] 编译 Release 版本..."
 
-# 获取项目根目录的绝对路径
-PROJECT_ROOT="$(cd "$SCRIPT_DIR" && pwd)"
+# 清理旧产物
+rm -rf /tmp/oo_build 2>/dev/null
+mkdir -p /tmp/oo_build
 
+# 编译 arm64
 echo "  [2a] 编译 arm64..."
+rm -rf ~/Library/Developer/Xcode/DerivedData/ONLYOFFICE-* 2>/dev/null
 cd "$XCODE_PROJ_DIR"
 xcodebuild \
   -project ONLYOFFICE.xcodeproj \
@@ -61,12 +94,12 @@ xcodebuild \
   CODE_SIGNING_ALLOWED=NO \
   DEVELOPMENT_TEAM="" \
   ONLY_ACTIVE_ARCH=YES \
-  2>&1 | grep -v "error: The specified item could not be found in the keychain" | tail -10
+  2>&1 | grep -v "error: The specified item could not be found in the keychain" | tail -5
 
-ARM_BUILD=$(find ~/Library/Developer/Xcode/DerivedData \
-  -name "ONLYOFFICE.app" -path "*/Products/Release/*" | head -1)
-
-if [ -n "$ARM_BUILD" ]; then
+sleep 2
+ARM_APP=$(find ~/Library/Developer/Xcode/DerivedData -name "ONLYOFFICE.app" -path "*/Products/Release/*" -type d | head -1)
+if [ -d "$ARM_APP" ] && [ -f "$ARM_APP/Contents/MacOS/ONLYOFFICE" ]; then
+    cp -R "$ARM_APP" /tmp/oo_build/ONLYOFFICE-arm.app
     echo "  ✅ arm64 编译完成"
 else
     echo "  ❌ arm64 编译失败"
@@ -74,7 +107,9 @@ else
     exit 1
 fi
 
+# 编译 x86_64
 echo "  [2b] 编译 x86_64..."
+rm -rf ~/Library/Developer/Xcode/DerivedData/ONLYOFFICE-* 2>/dev/null
 xcodebuild \
   -project ONLYOFFICE.xcodeproj \
   -scheme "ONLYOFFICE-x86_64" \
@@ -85,15 +120,17 @@ xcodebuild \
   CODE_SIGNING_ALLOWED=NO \
   DEVELOPMENT_TEAM="" \
   ONLY_ACTIVE_ARCH=YES \
-  2>&1 | grep -v "error: The specified item could not be found in the keychain" | tail -10
+  2>&1 | grep -v "error: The specified item could not be found in the keychain" | tail -5
 
-X86_BUILD=$(find ~/Library/Developer/Xcode/DerivedData \
-  -name "ONLYOFFICE.app" -path "*/Products/Release/*" | head -1)
-
-if [ -n "$X86_BUILD" ]; then
+sleep 2
+X86_APP=$(find ~/Library/Developer/Xcode/DerivedData -name "ONLYOFFICE.app" -path "*/Products/Release/*" -type d | head -1)
+HAS_X86=false
+if [ -d "$X86_APP" ] && [ -f "$X86_APP/Contents/MacOS/ONLYOFFICE" ]; then
+    cp -R "$X86_APP" /tmp/oo_build/ONLYOFFICE-x86_64.app
     echo "  ✅ x86_64 编译完成"
+    HAS_X86=true
 else
-    echo "  ⚠️  x86_64 编译失败，将只包含 arm64"
+    echo "  ⚠️  x86_64 编译失败，将仅包含 arm64"
 fi
 
 echo ""
@@ -101,53 +138,48 @@ echo ""
 # ============================================
 # 3. 合成为 Universal Binary
 # ============================================
-echo ">>> [3/5] 合成 Universal Binary..."
+echo ">>> [3/6] 合成 Universal Binary..."
 
 mkdir -p "$DIST_DIR"
 DIST_APP="$DIST_DIR/$APP_NAME"
-
-# 复制 arm64 版本作为基础
 rm -rf "$DIST_APP"
-cp -R "$ARM_BUILD" "$DIST_APP"
 
-if [ -n "$X86_BUILD" ] && [ "$ARM_BUILD" != "$X86_BUILD" ]; then
+ARM_APP="/tmp/oo_build/ONLYOFFICE-arm.app"
+X86_APP="/tmp/oo_build/ONLYOFFICE-x86_64.app"
+
+# 以 arm64 为基础
+cp -R "$ARM_APP" "$DIST_APP"
+
+if [ "$HAS_X86" = true ]; then
     echo "  ⏳ 合成 ONLYOFFICE 可执行文件..."
     lipo -create \
-        "$ARM_BUILD/Contents/MacOS/ONLYOFFICE" \
-        "$X86_BUILD/Contents/MacOS/ONLYOFFICE" \
+        "$ARM_APP/Contents/MacOS/ONLYOFFICE" \
+        "$X86_APP/Contents/MacOS/ONLYOFFICE" \
         -output "$DIST_APP/Contents/MacOS/ONLYOFFICE"
 
-    echo "  ⏳ 合成动态库..."
-    for DYLIB in "$DIST_APP/Contents/Frameworks/"*.dylib; do
-        DYLIB_NAME=$(basename "$DYLIB")
-        X86_DYLIB="$X86_BUILD/Contents/Frameworks/$DYLIB_NAME"
-        if [ -f "$X86_DYLIB" ]; then
-            lipo -create "$DYLIB" "$X86_DYLIB" -output "$DYLIB" 2>/dev/null || true
-        fi
-    done
-
-    for DYLIB in "$DIST_APP/Contents/Resources/converter/"*.dylib; do
-        DYLIB_NAME=$(basename "$DYLIB")
-        X86_DYLIB="$X86_BUILD/Contents/Resources/converter/$DYLIB_NAME"
-        if [ -f "$X86_DYLIB" ]; then
-            lipo -create "$DYLIB" "$X86_DYLIB" -output "$DYLIB" 2>/dev/null || true
-        fi
-    done
-
     echo "  ⏳ 合成 CEF Framework..."
-    ARM_CEF="$ARM_BUILD/Contents/Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework"
-    X86_CEF="$X86_BUILD/Contents/Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework"
-    if [ -f "$ARM_CEF" ] && [ -f "$X86_CEF" ]; then
-        lipo -create "$ARM_CEF" "$X86_CEF" \
-            -output "$DIST_APP/Contents/Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework"
-    fi
+    lipo -create \
+        "$ARM_APP/Contents/Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework" \
+        "$X86_APP/Contents/Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework" \
+        -output "$DIST_APP/Contents/Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework" 2>/dev/null || true
 
-    echo "  ✅ Universal Binary 合成完成"
+    echo "  ⏳ 合成动态库..."
+    find "$DIST_APP/Contents/Frameworks" -name "*.dylib" -print0 2>/dev/null | while IFS= read -r -d '' DYLIB; do
+        NAME=$(basename "$DYLIB")
+        X86_DYLIB="$X86_APP/Contents/Frameworks/$NAME"
+        [ -f "$X86_DYLIB" ] && lipo -create "$DYLIB" "$X86_DYLIB" -output "$DYLIB" 2>/dev/null
+    done
+    find "$DIST_APP/Contents/Resources/converter" -name "*.dylib" -print0 2>/dev/null | while IFS= read -r -d '' DYLIB; do
+        REL=$(echo "$DYLIB" | sed 's|.*/ONLYOFFICE.app/||')
+        X86_DYLIB="$X86_APP/$REL"
+        [ -f "$X86_DYLIB" ] && lipo -create "$DYLIB" "$X86_DYLIB" -output "$DYLIB" 2>/dev/null
+    done
+
+    echo "  ✅ Universal Binary 合成完成 (arm64 + x86_64)"
 else
-    echo "  ⚠️  仅 arm64（x86_64 编译失败或无差异）"
+    echo "  ⚠️  仅 arm64"
 fi
 
-# 验证
 echo "  📋 架构信息:"
 lipo -info "$DIST_APP/Contents/MacOS/ONLYOFFICE"
 echo ""
@@ -155,7 +187,7 @@ echo ""
 # ============================================
 # 4. Ad-hoc 签名
 # ============================================
-echo ">>> [4/5] Ad-hoc 签名..."
+echo ">>> [4/6] Ad-hoc 签名..."
 
 codesign --force --deep --sign - \
     "$DIST_APP/Contents/Frameworks/Chromium Embedded Framework.framework" 2>/dev/null || true
@@ -163,7 +195,10 @@ find "$DIST_APP/Contents/Frameworks" -name "*.dylib" \
     -exec codesign --force --sign - {} \; 2>/dev/null || true
 find "$DIST_APP/Contents/Resources/converter" -name "*.dylib" \
     -exec codesign --force --sign - {} \; 2>/dev/null || true
+find "$DIST_APP/Contents/Frameworks" -name "*.app" \
+    -exec codesign --force --sign - {} \; 2>/dev/null || true
 codesign --force --sign - "$DIST_APP/Contents/MacOS/ONLYOFFICE" 2>/dev/null || true
+codesign --force --deep --sign - "$DIST_APP" 2>/dev/null || true
 
 echo "  ✅ 签名完成"
 echo ""
@@ -171,47 +206,33 @@ echo ""
 # ============================================
 # 5. 创建 DMG
 # ============================================
-echo ">>> [5/5] 创建 DMG..."
+echo ">>> [5/6] 创建 DMG..."
 
 DMG_TMP="$DIST_DIR/${DMG_NAME}-tmp.dmg"
 DMG_OUT="$DIST_DIR/${DMG_NAME}.dmg"
-
-# 删除旧文件
 rm -f "$DMG_TMP" "$DMG_OUT"
 
-# 创建临时 DMG
-echo "  ⏳ 创建 DMG 镜像..."
-hdiutil create -size 600m -fs HFS+ -volname "$DMG_NAME" "$DMG_TMP" 2>&1 | tail -1
-
-# 挂载临时 DMG
-echo "  ⏳ 挂载 DMG..."
+# App 实际大小约 1.6GB，DMG 需要 2GB 空间
+echo "  ⏳ 创建 DMG 镜像 (2GB)..."
+hdiutil create -size 2g -fs HFS+ -volname "$DMG_NAME" "$DMG_TMP" 2>&1 | tail -1
 hdiutil attach "$DMG_TMP" -nobrowse 2>&1 | tail -1
 
-# 复制 App + 卸载时的 Applications 快捷方式
 echo "  ⏳ 复制内容..."
-cp -R "$DIST_APP" /Volumes/"$DMG_NAME"/
-
-# 创建 Applications 快捷方式
+cp -R "$DIST_APP" /Volumes/"$DMG_NAME"/ 2>&1 | tail -1
 ln -sf /Applications /Volumes/"$DMG_NAME"/Applications 2>/dev/null || true
 
-# 创建 .background 和 .DS_Store（美化 DMG 窗口）
-
-# 卸载
 echo "  ⏳ 卸载 DMG..."
 hdiutil detach /Volumes/"$DMG_NAME" 2>&1 | tail -1
 
-# 转换为压缩的只读 DMG
-echo "  ⏳ 转换和压缩 DMG..."
+echo "  ⏳ 压缩 DMG..."
 hdiutil convert "$DMG_TMP" -format UDZO -imagekey zlib-level=9 -o "$DMG_OUT" 2>&1 | tail -1
-
-# 清理
 rm -f "$DMG_TMP"
 
 echo "  ✅ DMG 创建完成"
 echo ""
 
 # ============================================
-# 结果
+# 6. 结果
 # ============================================
 echo "============================================"
 echo " ✅ 构建完成！"
