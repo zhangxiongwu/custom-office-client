@@ -140,6 +140,7 @@ echo ""
 # ============================================
 echo ">>> [3/6] 合成 Universal Binary..."
 
+rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR"
 DIST_APP="$DIST_DIR/$APP_NAME"
 rm -rf "$DIST_APP"
