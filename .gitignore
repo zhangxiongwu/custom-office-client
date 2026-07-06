@@ -38,6 +38,7 @@ next-env.d.ts
 /cmake-4.3.2-macos-universal
 
 ONLYOFFICE-arm.dmg
+ONLYOFFICE-x86_64.dmg
 DesktopEditors/build_tools/out/
 /dist
 
