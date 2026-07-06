@@ -39,5 +39,5 @@ next-env.d.ts
 
 ONLYOFFICE-arm.dmg
 DesktopEditors/build_tools/out/
-
+/dist
 

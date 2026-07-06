@@ -36,7 +36,7 @@
 
 - **Xcode** (含 Command Line Tools)
 - **Homebrew**
-- **Node.js** (v24+)
+- **Node.js** (必须v22)
 - **Qt6** `brew install qt@6`
 - **cmake** (项目目录已自带 `cmake-4.3.2-macos-universal/`)
 
