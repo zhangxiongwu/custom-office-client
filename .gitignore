@@ -34,3 +34,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/cmake-4.3.2-macos-universal
+
+DesktopEditors/.git
+DesktopEditors/.github
+DesktopEditors/.gitmodules
+DesktopEditors/**/.git
+DesktopEditors/**/.github
+DesktopEditors/**/.gitmodules
+
+ONLYOFFICE-arm.dmg
+DesktopEditors/build_tools/out/
+
+
