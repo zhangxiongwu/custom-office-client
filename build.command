@@ -34,6 +34,10 @@ fi
 # ============================================
 echo ">>> [1/6] 检查构建输出..."
 
+# 清理可能残留的挂载
+hdiutil detach /Volumes/ONLYOFFICE 2>/dev/null || true
+hdiutil detach "/Volumes/$DMG_NAME" 2>/dev/null || true
+
 if [ ! -d "$DMG_ARM_SOURCE" ]; then
     echo "  ❌ 未找到 build_tools/out/mac_arm64/，请先运行 install.command"
     read -p "按回车键退出..."
@@ -212,6 +216,10 @@ echo ">>> [5/6] 创建 DMG..."
 DMG_TMP="$DIST_DIR/${DMG_NAME}-tmp.dmg"
 DMG_OUT="$DIST_DIR/${DMG_NAME}.dmg"
 rm -f "$DMG_TMP" "$DMG_OUT"
+
+# 确保旧挂载已清理（避免 Read-only file system 错误）
+hdiutil detach "/Volumes/$DMG_NAME" 2>/dev/null || true
+sleep 1
 
 # App 实际大小约 1.6GB，DMG 需要 2GB 空间
 echo "  ⏳ 创建 DMG 镜像 (2GB)..."
