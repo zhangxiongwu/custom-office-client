@@ -1,0 +1,32 @@
+#CX11Caption {min-width: 875px;}
+#labelAppTitle {margin-top: -10px; font-size: 55px;}
+
+QPushButton {border-width: 5px; padding: 0 100px; height: 110px; border-radius: 10px; font-size: 55px;}
+QPushButton#toolButtonMaximize,
+QPushButton#toolButtonMinimize,
+QPushButton#toolButtonClose {padding: 25px 0px 35px;}
+
+QPushButton#toolButtonMaximize[kde=true],
+QPushButton#toolButtonMinimize[kde=true],
+QPushButton#toolButtonClose[kde=true] {padding: 10px 0px 35px;}
+
+QPushButton#toolButtonMain {font-size: 50px; border-right-width: 5px;}
+QPushButton#toolButtonMain[theme=light] {border-width: 5px; border-bottom: 0 none;}
+QPushButton#toolButtonMain[class=normal],
+QPushButton#toolButtonMain[class=normal]:hover {border-bottom-width: 5px;}
+#mainPanel[rtl=true] QPushButton#toolButtonMain {border-left-width: 5px;}
+
+QPushButton#toolButtonDownload {border-right-width: 5px; max-width: 200px; width: 200px; max-height: 140px; height: 140px;}
+#mainPanel[rtl=true] QPushButton#toolButtonDownload {border-left-width: 5px;}
+
+/* ToolTip*/
+
+#CToolTip>QLabel {
+    min-height: 130px;
+    margin: 0px;
+    padding-left: 50px; padding-right: 50px;
+    font-size: 55px;
+    border-width: 5px; border-radius: 23px;
+}
+#mainPanel[uitheme=theme-dark] #CToolTip>QLabel {border-width: 5px;}
+#mainPanel[uitheme=theme-contrast-dark] #CToolTip>QLabel {border-width: 5px;}

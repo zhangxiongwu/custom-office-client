@@ -1,0 +1,36 @@
+.switcher {
+    position: relative;
+    width: 30px;
+    height: 16px;
+    background-color: @border-preview-hover-ie;
+    background-color: @border-preview-hover;
+    border-radius: 11px;
+    cursor: pointer;
+
+    .thumb {
+        position: absolute;
+        left: 0;
+        right: auto;
+        top: 0;
+        height: 12px;
+        border-radius: 12px;
+        background-color: @background-normal-ie;
+        background-color: @background-normal;
+        margin: 2px;
+    }
+
+    &.on {
+        background-color: @background-primary-dialog-button-ie;
+        background-color: @background-primary-dialog-button;
+        .thumb {
+            right: 0;
+            left: auto;
+        }
+    }
+
+    &.disabled {
+        cursor: default;
+        opacity: @component-disabled-opacity-ie;
+        opacity: @component-disabled-opacity;
+    }
+}
