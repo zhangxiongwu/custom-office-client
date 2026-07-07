@@ -214,6 +214,14 @@ cp -R "$DMG_APP/Contents/Resources/editors/webext" "$OUT/editors/" 2>/dev/null |
 mkdir -p "$OUT/fonts"
 mkdir -p "$OUT/login/fonts" 2>/dev/null || true
 
+# ⚠️ 关键修复：从 DMG 复制 login/fonts 字体文件
+# 这是 ONLYOFFICE additional_fonts_folder 的字体来源，
+# 缺少此步骤会导致 FreeType 引擎字体数据库异常，CJK 字符 glyph 映射错误
+# 注意：必须同时复制到 fonts/ (Xcode Copy Library 脚本路径) 和 login/fonts/ (运行时路径)
+echo "  [5h1] 复制字体文件..."
+cp -R "$DMG_APP/Contents/Resources/login/fonts/"* "$OUT/fonts/"
+cp -R "$DMG_APP/Contents/Resources/login/fonts/"* "$OUT/login/fonts/"
+
 # ⚠️ 关键修复：Xcode "Copy Library" 脚本期望 index.html 在 build_tools 根目录
 # 但实际文件在 login/ 子目录中，需要复制一份到根目录
 echo "  [5h] 修复 index.html 路径（Xcode Copy Library 脚本兼容）..."
@@ -244,6 +252,10 @@ if [ -f "$DMG_X86_FILE" ]; then
     mkdir -p "$X86_OUT/login"
     cp "$DESKTOP_EDITORS_DIR/desktop-apps/common/loginpage/deploy/index.html" "$X86_OUT/login/"
     cp "$DESKTOP_EDITORS_DIR/desktop-apps/common/loginpage/deploy/noconnect.html" "$X86_OUT/login/"
+    mkdir -p "$X86_OUT/login/fonts"
+    mkdir -p "$X86_OUT/fonts"
+    cp -R "$X86_DMG_APP/Contents/Resources/login/fonts/"* "$X86_OUT/fonts/" 2>/dev/null || true
+    cp -R "$X86_DMG_APP/Contents/Resources/login/fonts/"* "$X86_OUT/login/fonts/" 2>/dev/null || true
     cp "$X86_OUT/login/index.html" "$X86_OUT/index.html" 2>/dev/null || true
     hdiutil detach /Volumes/ONLYOFFICE 2>/dev/null || true
     echo "     ✅ x86_64 输出目录组装完成"

@@ -886,8 +886,23 @@
 			}
 			*/
 
-			if (_param[4] != (_select.m_ulCodePageRange1 & _param[4]))
-				continue;
+			// 🔧 macOS CJK Fix: macOS system fonts (PingFang, STHeiti, etc.)
+			// don't set Windows CodePage bits. For CJK ranges, use loose
+			// matching (any matching bit) instead of exact match.
+			// Without this, ALL macOS CJK fonts are filtered out, causing
+			// glyph mapping errors like U+8D75(赵) → U+8B1B(講).
+			if (_range.Name == c_oUnicodeRangesLID.CJK_Unified_Ideographs ||
+			    _range.Name == c_oUnicodeRangesLID.CJK_Unified_Ideographs_Extension ||
+			    _range.Name == c_oUnicodeRangesLID.CJK_Compatibility_Ideographs)
+			{
+				if (0 == (_select.m_ulCodePageRange1 & _param[4]))
+					continue;
+			}
+			else
+			{
+				if (_param[4] != (_select.m_ulCodePageRange1 & _param[4]))
+					continue;
+			}
 
 			if (_param[5] != (_select.m_ulCodePageRange2 & _param[5]))
 				continue;

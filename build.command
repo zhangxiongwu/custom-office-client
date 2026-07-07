@@ -64,6 +64,10 @@ if [ ! -d "$DMG_X86_SOURCE" ]; then
         mkdir -p "$DMG_X86_SOURCE/login"
         cp "$DMG_ARM_SOURCE/login/index.html" "$DMG_X86_SOURCE/login/" 2>/dev/null || true
         cp "$DMG_ARM_SOURCE/login/noconnect.html" "$DMG_X86_SOURCE/login/" 2>/dev/null || true
+        mkdir -p "$DMG_X86_SOURCE/login/fonts"
+        mkdir -p "$DMG_X86_SOURCE/fonts"
+        cp -R "$X86_DMG_APP/Contents/Resources/login/fonts/"* "$DMG_X86_SOURCE/fonts/" 2>/dev/null || true
+        cp -R "$X86_DMG_APP/Contents/Resources/login/fonts/"* "$DMG_X86_SOURCE/login/fonts/" 2>/dev/null || true
         cp "$DMG_X86_SOURCE/login/index.html" "$DMG_X86_SOURCE/index.html" 2>/dev/null || true
         hdiutil detach /Volumes/ONLYOFFICE 2>/dev/null || true
         echo "     ✅ x86_64 已提取完成"
