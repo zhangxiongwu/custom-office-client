@@ -2946,9 +2946,7 @@ define([
             },
 
             onPrint: function() {
-                if (!this.appOptions.canPrint || Common.Utils.ModalWindow.isVisible()) return;
-                Common.NotificationCenter.trigger('file:print');
-                Common.component.Analytics.trackEvent('Print');
+                Common.UI.warning({msg: '当前为预览模式，不支持打印'});
             },
 
             onPrintUrl: function(url) {

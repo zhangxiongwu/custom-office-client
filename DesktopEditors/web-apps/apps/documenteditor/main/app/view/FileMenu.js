@@ -423,8 +423,8 @@ define([
 
             var canEdit = this.mode.canRequestEditRights && (!this.mode.isEdit && this.mode.canEdit || this.mode.isPDFForm && this.mode.canFillForms && this.mode.isRestrictedEdit);
             this.miEdit[canEdit?'show':'hide']();
-            this.miPrint[this.mode.canPrint && !this.mode.canPreviewPrint ?'show':'hide']();
-            this.miPrintWithPreview[this.mode.canPreviewPrint?'show':'hide']();
+            this.miPrint['hide']();
+            this.miPrintWithPreview['hide']();
             this.miRename[(this.mode.canRename && !this.mode.isDesktopApp) ?'show':'hide']();
             this.miProtect[(this.mode.isSignatureSupport || this.mode.isPasswordSupport) ?'show':'hide']();
             separatorVisible = (this.mode.canDownload || this.mode.canDownloadOrigin || this.mode.isEdit && Common.UI.LayoutManager.isElementVisible('toolbar-file-save') || this.mode.canPrint || (this.mode.isSignatureSupport || this.mode.isPasswordSupport) ||

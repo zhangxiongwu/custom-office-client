@@ -1999,6 +1999,7 @@ define([
             },
 
             setMode: function (mode) {
+                this.$el.hide(); // hide toolbar in preview mode
                 if (mode.isDisconnected) {
                     this.lockToolbar(Common.enumLock.lostConnect, true);
                     this.lockToolbar( Common.enumLock.lostConnect, true, {array:[this.btnUndo,this.btnRedo,this.btnSave]} );

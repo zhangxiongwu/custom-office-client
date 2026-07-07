@@ -3138,8 +3138,7 @@ define([
             },
 
             onPrint: function() {
-                if (!this.appOptions.canPrint || Common.Utils.ModalWindow.isVisible()) return;
-                Common.NotificationCenter.trigger('file:print', this);
+                Common.UI.warning({msg: '当前为预览模式，不支持打印'});
             },
 
             onPrintUrl: function(url) {
