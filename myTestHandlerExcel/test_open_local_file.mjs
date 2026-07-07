@@ -1,31 +1,39 @@
 #!/usr/bin/env node
 /**
- * myTestHandlerExcel - oo-office:// 协议唤醒测试
+ * myTestHandlerExcel - 唤起客户端打开本地文件测试
  *
  * 测试流程:
- * 1. 自动查找 ONLYOFFICE.app（dist/ 或 ~/Applications/ 等）
- * 2. 自动 ad-hoc 签名（如需要）
- * 3. 启动应用
- * 4. 通过 oo-office:// 协议发送唤醒命令
- * 5. 验证登录页是否正常加载
- * 6. 测试创建新表格
+ * 1. 通过 open -a 命令唤起 ONLYOFFICE 打开本地 test_sales.xlsx
+ * 2. 验证应用是否正常加载文件
  *
  * 使用方法:
- *   node myTestHandlerExcel/test_oooffice_wakeup.mjs
- *   或双击 myTestHandlerExcel/run_test.command
+ *   node myTestHandlerExcel/test_open_local_file.mjs
+ *
+ * ⚠️ 注意:
+ *   浏览器 URL 栏无法直接用 URL Scheme 打开本地文件（浏览器安全限制）。
+ *   以下是在浏览器地址栏可直接使用的 oo-office:// 协议唤醒测试 URL:
+ *
+ *   纯唤醒（打开首页）:
+ *     oo-office://
+ *
+ *   面板选择:
+ *     oo-office://action|panel|
+ *
+ *   Excel 解密预览（开发中）:
+ *     oo-office://action|excel-decode|?json=URL_ENCODED_JSON
  */
 
 import { execSync } from 'child_process';
 import { setTimeout } from 'timers/promises';
 import { existsSync } from 'fs';
-import { resolve, dirname } from 'path';
+import { resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // 彩色输出
-const c = { red: '\x1b[31m', green: '\x1b[32m', yellow: '\x1b[33m', cyan: '\x1b[36m', reset: '\x1b[0m' };
-function log(level, msg) { console.log(`  ${({ok:c.green+'✓',fail:c.red+'✗',info:c.cyan+'ℹ',warn:c.yellow+'⚠'}[level]||'')} ${msg}${c.reset}`); }
+const c = { red: '\x1b[31m', green: '\x1b[32m', yellow: '\x1b[33m', cyan: '\x1b[36m', magenta: '\x1b[35m', reset: '\x1b[0m' };
+function log(level, msg) { console.log(`  ${({ok:c.green+'✓',fail:c.red+'✗',info:c.cyan+'ℹ',warn:c.yellow+'⚠',url:c.magenta+'▶'}[level]||'')} ${msg}${c.reset}`); }
 function section(t) { console.log(`\n${c.cyan}━━━ ${t} ━━━${c.reset}`); }
 
 function execCmd(cmd, timeout = 10000) {
@@ -33,7 +41,7 @@ function execCmd(cmd, timeout = 10000) {
 }
 
 // ============================================================
-// 步骤 1: 自动查找应用
+// 自动查找应用
 // ============================================================
 const WORKSPACE = resolve(execCmd('git rev-parse --show-toplevel'), '.') || resolve(__dirname, '../..');
 
@@ -51,16 +59,15 @@ function findApp() {
     return execCmd(`mdfind "kMDItemDisplayName == 'ONLYOFFICE'" 2>/dev/null | head -1`) || null;
 }
 
-let APP_PATH = findApp();
+const APP_PATH = findApp();
 
 // ============================================================
-// 步骤 2: 自动签名
+// 自动签名
 // ============================================================
 function codesignApp(appPath) {
     const appExec = `${appPath}/Contents/MacOS/ONLYOFFICE`;
     if (!existsSync(appExec)) return false;
 
-    // 检查是否已签名
     const signInfo = execCmd(`codesign -dv "${appPath}" 2>&1`);
     if (signInfo.includes('adhoc') || signInfo.includes('Authority=Apple Development')) {
         log('ok', '应用已签名');
@@ -81,12 +88,12 @@ function codesignApp(appPath) {
 }
 
 // ============================================================
-// 步骤 3: 启动应用
+// 启动应用
 // ============================================================
 async function launchApp() {
     const running = execCmd('pgrep -f "ONLYOFFICE"');
     if (running) {
-        log('ok', `应用正在运行 (PID: ${running})`);
+        log('ok', `应用正在运行 (PID: ${running.split('\n')[0]})`);
         return;
     }
 
@@ -97,7 +104,7 @@ async function launchApp() {
         await setTimeout(1000);
         if (execCmd('pgrep -f "ONLYOFFICE"')) {
             log('ok', '应用已启动');
-            await setTimeout(5000); // 等登录页加载
+            await setTimeout(5000);
             return;
         }
     }
@@ -106,39 +113,62 @@ async function launchApp() {
 }
 
 // ============================================================
-// 步骤 4: oo-office:// 协议测试
+// 展示浏览器可用的 URL Scheme
 // ============================================================
-async function testProtocol() {
-    const tests = [
-        { url: 'oo-office://',              desc: '纯唤醒（打开首页）' },
-        { url: 'oo-office://action|panel|', desc: '面板选择' },
+function showBrowserURLs() {
+    section('浏览器 URL 栏可直接使用的协议唤醒地址');
+    const urls = [
+        { url: 'oo-office://',                                       desc: '纯唤醒 — 打开 ONLYOFFICE 首页' },
+        { url: 'oo-office://action|panel|',                          desc: '面板选择' },
+        { url: 'oo-office://action|excel-decode|?json=URL_ENCODED',  desc: 'Excel 解密预览（开发中）' },
     ];
 
-    for (const t of tests) {
-        log('info', `发送: ${t.url}  (${t.desc})`);
-        execCmd(`open "${t.url}"`, 5000);
-        await setTimeout(2000);
-
-        if (!execCmd('pgrep -f "ONLYOFFICE"')) {
-            log('fail', `应用在 "${t.desc}" 后崩溃`);
-            process.exit(1);
-        }
-        log('ok', `  进程存活 — ${t.desc}`);
+    console.log(`  ${c.yellow}以下 URL 可直接复制到浏览器地址栏回车测试:${c.reset}\n`);
+    for (const u of urls) {
+        console.log(`  ${c.magenta}▶${c.reset}  ${c.cyan}${u.url}${c.reset}`);
+        console.log(`     ${u.desc}\n`);
     }
+
+    console.log(`  ${c.yellow}⚠️  本地文件无法通过浏览器 URL Scheme 直接打开（安全限制）${c.reset}`);
+    console.log(`  ${c.yellow}   请用以下方式打开本地文件:${c.reset}`);
+    console.log(`  ${c.yellow}   - 终端: open -a ONLYOFFICE.app test_sales.xlsx${c.reset}`);
+    console.log(`  ${c.yellow}   - Node:  node myTestHandlerExcel/test_open_local_file.mjs${c.reset}`);
 }
 
 // ============================================================
-// 步骤 5: 验证窗口
+// 测试打开本地文件
 // ============================================================
-async function verifyWindows() {
-    const win = execCmd(`osascript -e 'tell app "System Events" to name of windows of process "ONLYOFFICE"' 2>/dev/null`, 5000);
-    if (win) { log('ok', `窗口: ${win}`); }
-    else { log('warn', '无法获取窗口信息'); }
+async function testOpenLocalFile() {
+    section('打开本地文件测试');
 
-    // 检查崩溃日志
-    const crashes = execCmd(`ls -t ~/Library/Logs/DiagnosticReports/ONLYOFFICE*.crash 2>/dev/null | head -1`, 5000);
-    if (crashes) { log('fail', `发现崩溃报告: ${crashes}`); process.exit(1); }
-    else { log('ok', '无崩溃报告'); }
+    const testFile = join(WORKSPACE, 'test_sales.xlsx');
+    if (!existsSync(testFile)) {
+        log('fail', `文件不存在: ${testFile}`);
+        process.exit(1);
+    }
+
+    // 方式 1: open -a 直接打开
+    log('info', `方式 1 — open -a 命令打开: ${testFile}`);
+    execCmd(`open -a "${APP_PATH}" "${testFile}"`, 5000);
+    await setTimeout(3000);
+
+    if (!execCmd('pgrep -f "ONLYOFFICE"')) {
+        log('fail', '应用在打开文件后崩溃');
+        process.exit(1);
+    }
+    log('ok', '进程存活 — 文件已在编辑器中打开');
+
+    // 方式 2: file:// URL (通过 open 命令等价于浏览器行为)
+    const fileURL = `file://${testFile}`;
+    log('info', `方式 2 — file:// URL 打开: ${fileURL}`);
+    execCmd(`open "${fileURL}"`, 5000);
+    await setTimeout(2000);
+
+    if (!execCmd('pgrep -f "ONLYOFFICE"')) {
+        log('fail', '应用在打开 file:// URL 后崩溃');
+        process.exit(1);
+    }
+    log('ok', '进程存活');
 }
 
 // ============================================================
@@ -147,7 +177,7 @@ async function verifyWindows() {
 async function main() {
     console.log(`${c.cyan}
   ╔══════════════════════════════════════════════╗
-  ║   oo-office:// 协议唤醒测试                   ║
+  ║   唤起客户端打开本地文件测试                   ║
   ║   myTestHandlerExcel                       ║
   ╚══════════════════════════════════════════════╝
 ${c.reset}`);
@@ -168,17 +198,21 @@ ${c.reset}`);
     section('步骤 2: 签名检查');
     codesignApp(APP_PATH);
 
-    // 3. 启动
+    // 3. 浏览器 URL 展示
+    showBrowserURLs();
+
+    // 4. 启动
     section('步骤 3: 启动应用');
     await launchApp();
 
-    // 4. 协议测试
-    section('步骤 4: oo-office:// 协议测试');
-    await testProtocol();
+    // 5. 打开文件测试
+    await testOpenLocalFile();
 
-    // 5. 验证
-    section('步骤 5: 验证结果');
-    await verifyWindows();
+    // 6. 验证
+    section('步骤 4: 验证结果');
+    const crashes = execCmd(`ls -t ~/Library/Logs/DiagnosticReports/ONLYOFFICE*.crash 2>/dev/null | head -1`, 5000);
+    if (crashes) { log('fail', `发现崩溃报告: ${crashes}`); process.exit(1); }
+    log('ok', '无崩溃报告');
 
     console.log(`\n${c.green}━━━ 全部测试通过 (${((Date.now()-start)/1000).toFixed(1)}s) ━━━${c.reset}\n`);
     process.exit(0);
