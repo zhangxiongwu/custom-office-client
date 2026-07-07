@@ -412,10 +412,10 @@ define([
             this.miClose.$el.find('+.devider')[isVisible?'show':'hide']();
             isVisible && (lastSeparator = this.miClose.$el.find('+.devider'));
 
-            this.miDownload[(this.mode.canDownload && (!this.mode.isDesktopApp || !this.mode.isOffline))?'show':'hide']();
+            this.miDownload['hide']();
             var isBCSupport = Common.Controllers.Desktop.isActive() ? Common.Controllers.Desktop.call("isBlockchainSupport") : false;
-            this.miSaveCopyAs[(this.mode.canDownload && (!this.mode.isDesktopApp || !this.mode.isOffline)) && (this.mode.canRequestSaveAs || this.mode.saveAsUrl) && !isBCSupport ?'show':'hide']();
-            this.miSaveAs[(this.mode.canDownload && this.mode.isDesktopApp && this.mode.isOffline)?'show':'hide']();
+            this.miSaveCopyAs['hide']();
+            this.miSaveAs['hide']();
             this.miSave[this.mode.showSaveButton && Common.UI.LayoutManager.isElementVisible('toolbar-file-save') ?'show':'hide']();
             this.miEdit[!this.mode.isEdit && this.mode.canEdit && this.mode.canRequestEditRights ?'show':'hide']();
             this.miPrint[this.mode.canPrint && !this.mode.canPreviewPrint ?'show':'hide']();
@@ -457,8 +457,8 @@ define([
             this.miHelp.$el.find('+.devider')[isVisible?'show':'hide']();
             isVisible && (lastSeparator = this.miHelp.$el.find('+.devider'));
 
-            isVisible = this.mode.canBack;
-            this.miBack[isVisible ?'show':'hide']();
+            isVisible = false;
+            this.miBack['hide']();
             lastSeparator && !isVisible && lastSeparator.hide();
 
             if (!this.customizationDone) {

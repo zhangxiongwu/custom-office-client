@@ -87,8 +87,8 @@
                     fileType: urlParams["filetype"],
                     vkey: urlParams["vkey"],
                     permissions: {
-                        edit: true,
-                        download: true
+                        edit: false,
+                        download: false
                     }
                 };
 
@@ -110,7 +110,7 @@
                         }
                         , uiTheme: urlParams["uitheme"]
                     },
-                    mode            : urlParams["mode"] || 'edit',
+                    mode            : urlParams["mode"] || 'view',
                     lang            : urlParams["lang"] || 'en',
                     createUrl       : 'desktop://create.new',
                     user: {

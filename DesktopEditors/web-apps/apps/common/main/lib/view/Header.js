@@ -875,7 +875,7 @@ define([
 
                     this.setCanRename(!!this.options.canRename);
 
-                    if ( this.options.canBack === true ) {
+                    if ( false /*this.options.canBack === true*/ ) {
                         me.btnGoBack.render($html.find('#slot-btn-back'));
                     } else {
                         $html.find('#slot-btn-back').hide();

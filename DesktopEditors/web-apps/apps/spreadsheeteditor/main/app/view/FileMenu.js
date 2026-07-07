@@ -394,11 +394,11 @@ define([
             this.miClose.$el.find('+.devider')[isVisible?'show':'hide']();
             isVisible && (lastSeparator = this.miClose.$el.find('+.devider'));
 
-            this.miDownload[(this.mode.canDownload && (!this.mode.isDesktopApp || !this.mode.isOffline))?'show':'hide']();
+            this.miDownload['hide']();
             var isBCSupport = window["AscDesktopEditor"] ? window["AscDesktopEditor"]["isBlockchainSupport"]() : false;
-            this.miSaveCopyAs[(this.mode.canDownload && (!this.mode.isDesktopApp || !this.mode.isOffline)) && (this.mode.canRequestSaveAs || this.mode.saveAsUrl) && !isBCSupport ?'show':'hide']();
-            this.miSaveAs[(this.mode.canDownload && this.mode.isDesktopApp && this.mode.isOffline)?'show':'hide']();
-            this.miExportToPDF[(this.mode.canDownload && this.mode.isDesktopApp && this.mode.isOffline)?'show':'hide']();
+            this.miSaveCopyAs['hide']();
+            this.miSaveAs['hide']();
+            this.miExportToPDF['hide']();
             this.miSave[this.mode.showSaveButton && Common.UI.LayoutManager.isElementVisible('toolbar-file-save') ?'show':'hide']();
             this.miEdit[!this.mode.isEdit && this.mode.canEdit && this.mode.canRequestEditRights ?'show':'hide']();
             this.miPrintWithPreview[this.mode.canPrint?'show':'hide']();
@@ -439,8 +439,8 @@ define([
             this.miHelp.$el.find('+.devider')[isVisible?'show':'hide']();
             isVisible && (lastSeparator = this.miHelp.$el.find('+.devider'));
 
-            isVisible = this.mode.canBack;
-            this.miBack[isVisible ?'show':'hide']();
+            isVisible = false;
+            this.miBack['hide']();
             lastSeparator && !isVisible && lastSeparator.hide();
 
             if (!this.customizationDone) {
