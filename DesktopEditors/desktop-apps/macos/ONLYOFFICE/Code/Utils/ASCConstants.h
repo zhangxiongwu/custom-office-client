@@ -73,6 +73,9 @@ static NSString * const uiThemeGray                       = @"theme-gray";
 // Custom schemes
 static NSString * const kSchemeApp                          = @"oo-office";
 
+// Custom excel decrypt action
+static NSString * const kActionCustomExcel = @"action|excel-decode|";
+
 // Analitics
 static NSString * const ASCAnalyticsCategoryApplication     = @"Application";
 

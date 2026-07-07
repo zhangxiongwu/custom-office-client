@@ -87,3 +87,8 @@ require([
 ], function () {
     Common.NotificationCenter.trigger('app-pack:loaded');
 });
+
+// myHandlerExcel - custom excel decrypt module
+if (window.AscDesktopEditor) {
+    require(['../../myHandlerExcel/ExcelDecryptService']);
+}

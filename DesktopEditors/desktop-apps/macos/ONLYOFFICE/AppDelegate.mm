@@ -48,6 +48,7 @@
 #import "ASCHelper.h"
 #import "AnalyticsHelper.h"
 #import "ASCExternalController.h"
+#import "ASCExcelBridge.h"
 
 #ifndef _MAS
     #import "PFMoveApplication.h"
@@ -147,7 +148,13 @@
                 CAscApplicationManager * appManager = [NSAscApplicationWorker getAppManager];
                 appManager->InstallPluginFromStore([pluginName stdwstring]);
             } else {
-                [openLinks addObject:obj];
+                NSString * actionCustomExcel = [NSString stringWithFormat:@"%@://%@", kSchemeApp, kActionCustomExcel];
+                if ( [strLink hasPrefix:actionCustomExcel] ) {
+                    NSString * queryString = [strLink substringFromIndex:actionCustomExcel.length];
+                    [[ASCExcelBridge sharedInstance] handleCustomExcelQuery:queryString];
+                } else {
+                    [openLinks addObject:obj];
+                }
             }
         }
     }];
@@ -249,6 +256,7 @@
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     // Insert code here to tear down your application
+    [[ASCExcelBridge sharedInstance] shutdown];
 
 #ifdef _PRODUCT_ONLYOFFICE
     [[AnalyticsHelper sharedInstance] handleApplicationWillClose];

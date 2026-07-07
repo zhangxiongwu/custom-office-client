@@ -389,6 +389,12 @@
 		FCCC2FE621E5E1CA00FB9209 /* ASCTouchBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = FCCC2FE421E5E1CA00FB9209 /* ASCTouchBarController.m */; };
 		FCD294661BB97C8B00318930 /* ASCMulticastDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = FCD294651BB97C8B00318930 /* ASCMulticastDelegate.m */; };
 		FCD294691BB97D3300318930 /* ASCDownloadController.mm in Sources */ = {isa = PBXBuildFile; fileRef = FCD294681BB97D3300318930 /* ASCDownloadController.mm */; };
+		A98A71029552B4EECF9BF882 /* ASCLocalHTTPServer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8CD6B53B316126067CC0A11F /* ASCLocalHTTPServer.mm */; };
+		978BE5C2BF0F65CFB47DD080 /* ASCLocalHTTPServer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8CD6B53B316126067CC0A11F /* ASCLocalHTTPServer.mm */; };
+		FC9DE9DA1E494160A83C4A84 /* ASCLocalHTTPServer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8CD6B53B316126067CC0A11F /* ASCLocalHTTPServer.mm */; };
+		B0F25AA62A22DAD2ED435870 /* ASCExcelBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = AC59A02790D9CF2D3B6924BB /* ASCExcelBridge.mm */; };
+		233D28E7EB28C7B495814191 /* ASCExcelBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = AC59A02790D9CF2D3B6924BB /* ASCExcelBridge.mm */; };
+		9E06FFB27FFE1D66E20B9B4F /* ASCExcelBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = AC59A02790D9CF2D3B6924BB /* ASCExcelBridge.mm */; };
 		FCD2B9181BC64F0C00F54560 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = FCD2B9161BC64F0C00F54560 /* Localizable.stringsdict */; };
 		FCDDD602208F3C25008AF573 /* Document-Sign.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FCDDD606208F3C25008AF573 /* Document-Sign.storyboard */; };
 		FCE7D166207D002700642010 /* NSLayoutConstraint+PureLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = FCE7D15F207D002700642010 /* NSLayoutConstraint+PureLayout.m */; };
@@ -1131,6 +1137,10 @@
 		FCD294651BB97C8B00318930 /* ASCMulticastDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASCMulticastDelegate.m; sourceTree = "<group>"; };
 		FCD294671BB97D3300318930 /* ASCDownloadController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASCDownloadController.h; sourceTree = "<group>"; };
 		FCD294681BB97D3300318930 /* ASCDownloadController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ASCDownloadController.mm; sourceTree = "<group>"; };
+		9786955EFD562CD0B978C815 /* ASCLocalHTTPServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASCLocalHTTPServer.h; sourceTree = "<group>"; };
+		8CD6B53B316126067CC0A11F /* ASCLocalHTTPServer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ASCLocalHTTPServer.mm; sourceTree = "<group>"; };
+		241BE12EDAA66A3FCD729B9F /* ASCExcelBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASCExcelBridge.h; sourceTree = "<group>"; };
+		AC59A02790D9CF2D3B6924BB /* ASCExcelBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ASCExcelBridge.mm; sourceTree = "<group>"; };
 		FCD2B9081BC6489800F54560 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
 		FCD2B9091BC6489800F54560 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		FCD2B90B1BC648A500F54560 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Main.strings; sourceTree = "<group>"; };
@@ -1521,6 +1531,18 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		78DDE433A784F09C1919BD8C /* myHandlerExcel */ = {
+			isa = PBXGroup;
+			children = (
+				9786955EFD562CD0B978C815 /* ASCLocalHTTPServer.h */,
+				8CD6B53B316126067CC0A11F /* ASCLocalHTTPServer.mm */,
+				241BE12EDAA66A3FCD729B9F /* ASCExcelBridge.h */,
+				AC59A02790D9CF2D3B6924BB /* ASCExcelBridge.mm */,
+			);
+			path = myHandlerExcel;
+			sourceTree = "<group>";
+		};
+
 		FCB454FC1C326A4E00FEACF2 /* PFMoveApplication */ = {
 			isa = PBXGroup;
 			children = (
@@ -1743,6 +1765,7 @@
 				FCBC428E1B9D65CA00405301 /* Controls */,
 				FCC77C54206CDB0A001B7837 /* Extensions */,
 				FCA0B3561B9F00780073EDD4 /* Utils */,
+				78DDE433A784F09C1919BD8C /* myHandlerExcel */,
 			);
 			path = Code;
 			sourceTree = "<group>";
@@ -2452,6 +2475,8 @@
 				FC0BD6BF258B63F700C47F95 /* SFBPopoverWindowFrame.m in Sources */,
 				FC0BD6C0258B63F700C47F95 /* ASCTabViewCell.m in Sources */,
 				FC0BD6C1258B63F700C47F95 /* ASCReplacePresentationAnimator.mm in Sources */,
+				A98A71029552B4EECF9BF882 /* ASCLocalHTTPServer.mm in Sources */,
+				B0F25AA62A22DAD2ED435870 /* ASCExcelBridge.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2527,6 +2552,8 @@
 				FCB4C6FB26DD018B0012C20D /* SFBPopoverWindowFrame.m in Sources */,
 				FCB4C6FC26DD018B0012C20D /* ASCTabViewCell.m in Sources */,
 				FCB4C6FD26DD018B0012C20D /* ASCReplacePresentationAnimator.mm in Sources */,
+				978BE5C2BF0F65CFB47DD080 /* ASCLocalHTTPServer.mm in Sources */,
+				233D28E7EB28C7B495814191 /* ASCExcelBridge.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2602,6 +2629,8 @@
 				FC3BFE021BBE83AB0040C904 /* SFBPopoverWindowFrame.m in Sources */,
 				FCC77C9A206CEE85001B7837 /* ASCTabViewCell.m in Sources */,
 				FC8DDD3D1C31381B00A2AB22 /* ASCReplacePresentationAnimator.mm in Sources */,
+				FC9DE9DA1E494160A83C4A84 /* ASCLocalHTTPServer.mm in Sources */,
+				9E06FFB27FFE1D66E20B9B4F /* ASCExcelBridge.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
