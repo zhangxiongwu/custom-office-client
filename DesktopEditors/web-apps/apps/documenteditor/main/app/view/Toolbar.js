@@ -3196,6 +3196,7 @@ define([
 
 
                 this.mode = mode;
+                this.$el.hide(); // hide toolbar in preview mode
 
                 this.listStylesAdditionalMenuItem && this.listStylesAdditionalMenuItem.setVisible(mode.canEditStyles);
                 this.btnContentControls && this.btnContentControls.menu.items[10].setVisible(mode.canEditContentControl);

@@ -2012,6 +2012,7 @@ define([
                 }
 
                 this.mode = mode;
+                this.$el.hide(); // hide toolbar in preview mode
             },
 
             onSendThemeColorSchemes: function (schemas) {
