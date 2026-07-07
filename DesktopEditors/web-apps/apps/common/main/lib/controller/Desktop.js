@@ -359,7 +359,7 @@ define([
         const _onAppReady = function (opts) {
             _.extend(config, opts);
             !!native && native.execCommand('doc:onready', '');
-            !!native && native.LocalFileRecents();
+            // !!native && native.LocalFileRecents(); // disabled - no recent files in preview mode
 
             $('.toolbar').addClass('editor-native-color');
         }

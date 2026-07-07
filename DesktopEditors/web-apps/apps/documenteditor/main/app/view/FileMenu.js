@@ -432,8 +432,8 @@ define([
             this.miProtect.$el.find('+.devider')[separatorVisible?'show':'hide']();
             separatorVisible && (lastSeparator = this.miProtect.$el.find('+.devider'));
 
-            this.miRecent[this.mode.canOpenRecent?'show':'hide']();
-            this.miNew[this.mode.canCreateNew?'show':'hide']();
+            this.miRecent['hide']();
+            this.miNew['hide']();
             if (!this.mode.canOpenRecent && !this.mode.canCreateNew) {
                 this.miRecent.$el.find('+.devider').hide();
             }

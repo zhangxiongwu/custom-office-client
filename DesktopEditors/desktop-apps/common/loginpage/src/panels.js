@@ -51,7 +51,7 @@ $(document).ready(function() {
 
     if ( !!window.ControllerTemplates )
         window.app.controller.templates = (new ControllerTemplates).init();
-    window.app.controller.recent = (new ControllerRecent).init();
+    // window.app.controller.recent = (new ControllerRecent).init(); // disabled - no recent files in preview mode
     window.app.controller.folders = (new ControllerFolders).init();
     window.app.controller.about = (new ControllerAbout).init();
     window.app.controller.settings = (new ControllerSettings).init();
@@ -73,7 +73,9 @@ $(document).ready(function() {
     } else {
         if ( !!utils.inParams.panel && $(`.action-panel.${utils.inParams.panel}`).length )
             selectAction(utils.inParams.panel);
-        else selectAction('recent');
+        else /* disabled - no recent files
+        selectAction('recent');
+        */ selectAction('welcome');
     }
 
     $('#placeholder').on('click', '.newportal', function(){
@@ -106,7 +108,7 @@ $(document).ready(function() {
     setTimeout(()=>{
         if (window.sdk) {
             window.sdk.LocalFileRecovers();
-            window.sdk.LocalFileRecents();
+            // window.sdk.LocalFileRecents(); // disabled - no recent files in preview mode
 
             window.sdk.execCommand('app:onready', '');
         } 
